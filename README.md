@@ -5,9 +5,6 @@ This repository contains the data and code associated with the manuscript by Sog
 # Contents
 / : Analysis scripts and functions used for the figures.
 /data : Dataset required to reproduce the results.
-This repository includes a mirrored copy of the MATLAB implementation of
-Violinplot (original repository: https://github.com/bastibe/Violinplot-Matlab).
-It is included solely for reproducibility purposes.
 
 # System Requirements
 MATLAB R2022b or later
