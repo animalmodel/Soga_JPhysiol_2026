@@ -8,7 +8,8 @@ This repository contains the data and code associated with the manuscript by Sog
 
 # System Requirements
 MATLAB R2022b or later<br>
-This code uses a perceptually uniform colormap ("viridis") from Matplotlib.
+This code uses a perceptually uniform colormap ("viridis") from Matplotlib.<br>
+Please install Matplotlib before running the code.
 
 # How to Run
 Clone or download this repository.<br>
