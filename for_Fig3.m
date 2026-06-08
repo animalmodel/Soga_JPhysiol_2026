@@ -121,7 +121,7 @@ axA.YColor = 'k';
 
 
 % Plot Figure 3B: Raster plot for neuron #21 during Pos-1 in Cat A
-ax1 = axes('Position',[0.1 0.1 0.4 0.4]);  % 下半分
+ax1 = axes('Position',[0.1 0.1 0.4 0.4]);
 hold(ax1,'on');
 
 % Plot firing rate (bin 50 ms)
@@ -167,14 +167,14 @@ title(ax1,'Cat A Pos-1','FontWeight','bold','FontSize',10,'FontName','Arial','Co
 
 
 % Plot Figure 3C: Firing rate for 72 neurons during Pos-1 in Cat A
-ax2 = axes('Position',[0.625 0.1 0.375 0.4]);  % 下半分
+ax2 = axes('Position',[0.625 0.1 0.375 0.4]);
 
 % Plot firing rate for 72 neurons
 imagesc(ax2, time_for_psth_50ms(1:end-1), 1:size(firing_rate_72_neurons_during_Pos1,1), firing_rate_72_neurons_during_Pos1);
 caxis(ax2,[0 180]); colormap(ax2,newCmap);
 
 % Label setting
-set(ax2, 'YDir', 'normal');  % 上が大きく
+set(ax2, 'YDir', 'normal');
 xlim(ax2,[-5 20]); ylim(ax2,[0.5 size(firing_rate_72_neurons_during_Pos1,1)+0.5]);
 ax2.FontSize=10; ax2.FontWeight='bold'; ax2.FontName='Arial';
 ax2.TickDir='out'; ax2.LineWidth=1.5; box(ax2,'off');
