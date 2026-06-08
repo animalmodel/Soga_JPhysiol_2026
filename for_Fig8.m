@@ -2,38 +2,45 @@
 % Created on Mar 20 2026
 % @author:Yuta Soga
 
-%% Requirements
-% This code uses a perceptually uniform colormap ("viridis") from Matplotlib.
-% The colormap is not included in standard MATLAB and requires an external function (e.g., viridis.m).
-
 %% Data loading
 filePath = 'data/';
-load([filePath,'data_Fig8_hip_and_knee_joint_catA.mat']);
-load([filePath,'data_Fig8_mean_firing_rate_representative_endpoint_neuron_catA.mat']);
+load([filePath,'data_Fig8_neuron_posture_response_type_catA.mat']);
+load([filePath,'data_Fig8_PC_loading_catA.mat']);
+load([filePath,'data_Fig8_neuron_posture_response_type_catB.mat']);
+load([filePath,'data_Fig8_PC_loading_catB.mat']);
 
 %% Variables in this file
-% Hip_joint_angle_16_recording_positions_catA
-%   Size: [16 × 1]
-%   - Description: Hip joint angle at each of the 16 recording positions in Cat A
-%     Each element corresponds to the hip joint angle at a specific recording position
+% neuron_posture_response_type_catA
+%   Size: [72 × 1]
+%   - Description: Labels indicating the response type of each neuron in Cat A
+%     Each element corresponds to a neuron.
+%     0: No modulation
+%     1: Responds to hip joint angle
+%     2: Responds to knee joint angle
+%     3: Responds to both hip and knee joint angles
+%     4: Responds to a single endpoint
 
-% Knee_joint_angle_16_recording_positions_catA
-%   Size: [16 × 1]
-%   - Description: Knee joint angle at each of the 16 recording positions in Cat A
-%     Each element corresponds to the knee joint angle at a specific recording position
+% PC1_PC2_PC3_loading_for_catA
+%   Size: [72 × 3]
+%   - Description: PCA loadings of 72 neurons in Cat A
+%     Each row corresponds to a neuron, and each column corresponds to PC1, PC2, and PC3
 
-% responsible_neuron_specific_endpoint_catA
-%   Size: [4 × 1]
-%   - Description: Neuron IDs in Cat A to be plotted in Figure 8
+% neuron_posture_response_type_catB
+%   Size: [136 × 1]
+%   - Description: Labels indicating the response type of each neuron in
+%   Cat B
+%     Each element corresponds to a neuron.
+%     0: No modulation
+%     1: Responds to hip joint angle
+%     2: Responds to knee joint angle
+%     3: Responds to both hip and knee joint angles
+%     4: Responds to a single endpoint
 
-% specific_endpoint_representative_neuron_catA
-%   Size: [4 × 1]
-%   - Description: Representative neurons in Cat A that respond to specific endpoints, to be plotted in Figure 8.
+% PC1_PC2_PC3_loading_for_catB
+%   Size: [136 × 3]
+%   - Description: PCA loadings of 136 neurons in Cat B
+%     Each row corresponds to a neuron, and each column corresponds to PC1, PC2, and PC3
 
-% mean_firing_rate_specific_endpoint_catA
-%   Size: [4 × 16]
-%   - Description: Mean firing rates of representative neurons in Cat A across 16 recording positions
-%     Each row corresponds to a neuron, and each column corresponds to a recording position
 
 %% make folder for save
 currentFolder = pwd;  
@@ -42,145 +49,201 @@ if ~exist(figureFolder, 'dir')
     mkdir(figureFolder);
 end
 
-%% Preprocessing
-% Set X label hip joint angle, Y label knee joint angle
-X = Hip_joint_angle_16_recording_positions_catA;
-Y = Knee_joint_angle_16_recording_positions_catA;
 
-%% Plot single endpoint responsive neurons
-figure('Units','centimeters','Position',[5 5 17 16]);
-tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
-
-% Plot four representative neurons for each panel
-for k = 1:4
-    neuron_idx = responsible_neuron_specific_endpoint_catA(k);
-    nexttile
-    hold on;
-    axis equal;
-
-    % Extract mean firing rate for plotting
-    firing_rate_mean = mean_firing_rate_specific_endpoint_catA(k,:);
-
-    % Plot mean firing rate for 16 recording position
-    scatter(X, Y, 40, firing_rate_mean, ...
-        'filled', 'MarkerEdgeColor', 'k');
-
-    % Setting color scale for mean firing rate
-    max_val = max(firing_rate_mean, [], 'all');
-    if max_val > 100
-        ylim_fig = [0 120];
-    elseif max_val > 80
-        ylim_fig = [0 100];
-    elseif max_val > 60
-        ylim_fig = [0 80];
-    elseif max_val > 40
-        ylim_fig = [0 60];
-    elseif max_val > 20
-        ylim_fig = [0 40];
-    elseif max_val > 10
-        ylim_fig = [0 20];
-    elseif max_val > 5
-        ylim_fig = [0 10];
-    elseif max_val > 1
-        ylim_fig = [0 5];
-    else
-        ylim_fig = [0 1];
-    end
-
-    % setting color bar
-    colormap(viridis);
-    caxis(ylim_fig);
-    cb = colorbar;
-    set(cb, ...
-    'FontName','Arial', ...
-    'FontWeight','bold', ...
-    'FontSize',8, ...
-    'Color','k')   
-
-    % Setting title
-    title(sprintf('Cat A Neuron #%d', neuron_idx), ...
-    'FontWeight','bold', ...
-    'FontName','Arial', ...
-    'FontSize',8, ...
-    'Color','k');
-    
-    % Label the single endpoint responded position
-    target_pos = specific_endpoint_representative_neuron_catA(k,1);  
-    for j = 1:length(X)
-    if j == target_pos
-        txtColor = [1.0 0.6 0.0];   % Single endpoint responded position
-    else
-        txtColor = 'k';             
-    end
-
-    % Label other recording positions
-    if j == 3
-        text(X(j)+1, Y(j)+5, ...
-            ['Pos-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-    elseif j == 9
-        text(X(j)+1, Y(j)+5, ...
-            ['Pos-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-    elseif j == 15
-        text(X(j)+3, Y(j)-5, ...
-            ['Pos-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-    else
-        text(X(j)+2, Y(j)-5, ...
-            ['Pos-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-    end
-    end
-
-    % Setting label
-    if k == 3 
-     xlabel('Hip joint angle [degree]', ...
-    'FontWeight','bold', ...
-    'FontName','Arial', ...
-    'FontSize',8, ...
-    'Color','k');
-    ylabel('Knee joint angle [degree]', ...
-    'FontWeight','bold', ...
-    'FontName','Arial', ...
-    'FontSize',8, ...
-    'Color','k');
-    else
-        xlabel('')
-        ylabel('')
-    end  
-    xlim([20 120])
-    ylim([40 140])
-    xticks(20:20:120);
-    yticks(40:20:140);
-    set(gca, ...
-    'FontName','Arial', ...
-    'FontWeight','bold', ...
-    'FontSize',8, ...
-    'TickDir','out', ...
-    'LineWidth',1.2, ...   
-    'XColor','k', ...      
-    'YColor','k')          
+%% preprocessing
+pcs = [1 2 3];
+nPC = numel(pcs);
+% Calculate normalized loading in Cat A
+for i = 1:nPC
+    Loading = PC1_PC2_PC3_loading_for_catA(:, pcs(i));     % loading vector
+    % Squared contribution
+    sq = Loading.^2;
+    % Normalize (sum across all 72 neurons equals 1)
+    normalized_loading_catA(:,i) = sq / sum(sq);
 end
 
-% Print and save figure
-print(gcf, fullfile(figureFolder, ...
-    'Figure8.emf'), ...
-    '-dmeta', '-r600');
+% Calculate normalized loading in Cat B
+for i = 1:nPC
+    Loading = PC1_PC2_PC3_loading_for_catB(:, pcs(i));     % loading vector
+    % Squared contribution
+    sq = Loading.^2;
+    % Normalize (sum across all 72 neurons equals 1)
+    normalized_loading_catB(:,i) = sq / sum(sq);
+end
 
+% Set colors for each category
+colorMap = [ ...
+    0.6 0.6 0.6;      % 0: No modulation for joint or single endpoint
+    0.0 0.0 1.0;      % 1: Modulation for hip joint
+    0.0 0.7 0.7;      % 2: Modulation for knee joint
+    0.8 0.0 0.8;      % 3: Modulation for both hip and knee joints
+    1.0 0.6 0.0];     % 4: Modulation for a single endpoint
+
+% Desired plotting order of categories
+desired_order = [2 1 3 4 0];
+
+
+%% Plot the results of PCA loading analysis
+figure;
+tiledlayout(2,3,"TileSpacing","compact","Padding","compact");
+
+% Plot Cat A PCA Results
+% labels are assumed to start from 0
+PC_element_percent = zeros(max(neuron_posture_response_type_catA)+1,3);
+
+for selectPC = 1:3
+    labels = neuron_posture_response_type_catA;
+
+    % Compute group-wise sums of normalized loadings
+    group_sums_all = zeros(max(labels)+1,1);
+    for lbl = 0:max(labels)
+        group_sums_all(lbl+1) = sum(normalized_loading_catA(labels == lbl,selectPC));
+    end
+
+    % Convert to percentage
+    PC_element_percent(:,selectPC) = group_sums_all * 100;
+
+    % Reorder categories in clockwise order
+    group_sums = group_sums_all(fliplr(desired_order)+1);
+    pieColors  = colorMap(fliplr(desired_order)+1,:);
+
+    % --- Plot pie chart ---
+    nexttile;
+    pie(group_sums);
+    colormap(pieColors);
+
+    % Retrieve patch and text objects
+    patches = flipud(findobj(gca,'Type','patch'));
+    texts   = flipud(findobj(gca,'Type','text'));
+
+    for k = 1:length(group_sums)
+        percent_val = group_sums(k) * 100;
+
+        % Display percentage label (hide if zero)
+        if percent_val == 0
+            texts(k).String = '';
+        else
+            texts(k).String = sprintf('%.1f%%', percent_val);
+        end
+
+        % Set text appearance
+        texts(k).Color = [0.9 0.9 0.9];
+        texts(k).FontWeight = 'bold';
+        texts(k).FontSize = 8;
+        texts(k).FontName = 'Arial';
+
+        % Compute center angle of each pie slice
+        verts = patches(k).Vertices;
+        centerAngle = atan2(mean(verts(:,2)), mean(verts(:,1)));
+
+        % Manually adjusted radial and angular offsets to avoid label overlap
+        if selectPC == 1
+            r_adjust = [0.4 0.35 0.3 0.6 0.2];
+            angle_adjust = [-deg2rad(25) -deg2rad(5) -deg2rad(5) deg2rad(15) 0];
+        elseif selectPC == 2
+            r_adjust = [0.4 0.3 0.3 0.3 0.7];
+            angle_adjust = [-deg2rad(15) deg2rad(10) -deg2rad(10) deg2rad(3) -deg2rad(10)];
+        else
+            r_adjust = [0.4 0.35 0.4 0.5 0.7];
+            angle_adjust = [-deg2rad(15) deg2rad(15) deg2rad(10) deg2rad(10) -deg2rad(5)];
+        end
+
+        % Update label position
+        r = r_adjust(k);
+        a = centerAngle + angle_adjust(k);
+        texts(k).Position = [r*cos(a), r*sin(a), 0];
+    end
+
+    % Add title and adjust position slightly downward
+    titleHandle = title(sprintf('PC%d', selectPC), ...
+        'FontName','Arial','FontSize',10,'FontWeight','bold','Color','k');
+    titlePos = titleHandle.Position;
+    titleHandle.Position = [titlePos(1), titlePos(2)-0.2, titlePos(3)];
+end
+
+
+% Plot Cat B PCA Results
+% labels are assumed to start from 0
+PC_element_percent = zeros(max(neuron_posture_response_type_catB)+1,3);
+
+for selectPC = 1:3
+    labels = neuron_posture_response_type_catB;
+
+    % Compute group-wise sums of normalized loadings
+    group_sums_all = zeros(max(labels)+1,1);
+    for lbl = 0:max(labels)
+        group_sums_all(lbl+1) = sum(normalized_loading_catB(labels == lbl,selectPC));
+    end
+
+    % Convert to percentage
+    PC_element_percent(:,selectPC) = group_sums_all * 100;
+
+    % Reorder categories in clockwise order
+    group_sums = group_sums_all(fliplr(desired_order)+1);
+    pieColors  = colorMap(fliplr(desired_order)+1,:);
+
+    % --- Plot pie chart ---
+    nexttile;
+    pie(group_sums);
+    colormap(pieColors);
+
+    % Retrieve patch and text objects
+    patches = flipud(findobj(gca,'Type','patch'));
+    texts   = flipud(findobj(gca,'Type','text'));
+
+    for k = 1:length(group_sums)
+        percent_val = group_sums(k) * 100;
+
+        % Display percentage label (hide if zero)
+        if percent_val == 0
+            texts(k).String = '';
+        else
+            texts(k).String = sprintf('%.1f%%', percent_val);
+        end
+
+        % Set text appearance
+        texts(k).Color = [0.9 0.9 0.9];
+        texts(k).FontWeight = 'bold';
+        texts(k).FontSize = 8;
+        texts(k).FontName = 'Arial';
+
+        % Compute center angle of each pie slice
+        verts = patches(k).Vertices;
+        centerAngle = atan2(mean(verts(:,2)), mean(verts(:,1)));
+
+        % Manually adjusted radial and angular offsets to avoid label overlap
+        if selectPC == 1
+            r_adjust = [0.3 0.6 0.3 0.25 0.7];
+            angle_adjust = [-deg2rad(10) deg2rad(25) deg2rad(10) deg2rad(15) -deg2rad(5)];
+        elseif selectPC == 2
+            r_adjust = [0.2 0.5 0.5 0.6 0.2];
+            angle_adjust = [-deg2rad(10) deg2rad(10) -deg2rad(10) deg2rad(3) -deg2rad(5)];
+        else
+            r_adjust = [0.2 0.25 0.4 0.45 0.7];
+            angle_adjust = [-deg2rad(15) deg2rad(5) deg2rad(10) deg2rad(10) -deg2rad(5)];
+        end
+
+        % Update label position
+        r = r_adjust(k);
+        a = centerAngle + angle_adjust(k);
+        texts(k).Position = [r*cos(a), r*sin(a), 0];
+    end
+
+    % Add title and adjust position slightly downward
+    titleHandle = title(sprintf('PC%d', selectPC), ...
+        'FontName','Arial','FontSize',10,'FontWeight','bold','Color','k');
+    titlePos = titleHandle.Position;
+    titleHandle.Position = [titlePos(1), titlePos(2)-0.25, titlePos(3)];
+end
+
+% Setting figure
+set(gcf,'Units','centimeters');
+set(gcf,'Position',[2 2 12 8]);  
+set(gcf,'PaperUnits','centimeters');
+set(gcf,'PaperSize',[12 8]);
+set(gcf,'PaperPosition',[0 0 12 8]);
+set(gcf,'PaperPositionMode','manual');
+
+% Print and save figure
+export_path = fullfile(figureFolder, 'Figure8.emf');
+print(gcf, export_path, '-dmeta', '-r600');

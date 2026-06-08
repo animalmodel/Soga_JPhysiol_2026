@@ -55,7 +55,8 @@ Ankle_Yaxis = Ankle_xy_coordination_for_16_recording_positions(:,2) - Hip_xy_coo
 
 % set neuron name
 neuron_pair = [53 21]; 
-neuron_firing_rate_index = [Neuron53_firing_rate_16_recording_positions;Neuron21_firing_rate_16_recording_positions];
+neuron_firing_rate_index = [mean(Neuron53_firing_rate_16_recording_positions,1);mean(Neuron21_firing_rate_16_recording_positions,1)];
+neuron_firing_rate_index_std = [std(Neuron53_firing_rate_16_recording_positions,1);std(Neuron21_firing_rate_16_recording_positions,1)];
 
 %% Plot mean firing rate for neuron #53 and Neuron #21
 figure('Units','centimeters','Position',[5 5 17 6]);
@@ -68,8 +69,15 @@ for k = 1:2
     axis equal;
     % Plot mean firing rate
     firing_rate_mean = neuron_firing_rate_index(k,:);
-    scatter(Ankle_Xaxis, Ankle_Yaxis, 20, firing_rate_mean, ...
+    scatter(Ankle_Xaxis, Ankle_Yaxis, 40, firing_rate_mean, ...
         'filled', 'MarkerEdgeColor', 'k');
+    %
+    firing_rate_std = neuron_firing_rate_index_std(k,:);
+    scale = 50;  
+    scatter(Ankle_Xaxis, Ankle_Yaxis, firing_rate_std * scale, ...
+        'MarkerFaceColor', 'none', ...
+        'MarkerEdgeColor', [0.5 0.5 0.5], ...
+        'LineWidth', 1.5);
 
     % Set color scale for mean firing rate
     max_val = max(firing_rate_mean, [], 'all');
@@ -92,7 +100,8 @@ for k = 1:2
     end
  
     % Set color bar
-    colormap(viridis);
+    % colormap(viridis);
+    colormap(gray);
     caxis(ylim_fig); 
     cb = colorbar;
     set(cb, ...
@@ -103,31 +112,56 @@ for k = 1:2
     
     % Add text annotations for recording positions
     for j = 1:length(Ankle_Xaxis)
-        if j == 3
-            text(Ankle_Xaxis(j)+5, Ankle_Yaxis(j) + 8, ...
-                ['Pos-', num2str(j)], ...
-                'FontWeight','bold', ...
-                'FontSize', 8, ...
-                'HorizontalAlignment','center', ...
-                'FontName','Arial', ...
-                'Color','k');
-        elseif j == 4
-            text(Ankle_Xaxis(j)+9, Ankle_Yaxis(j) - 8, ...
-                ['Pos-', num2str(j)], ...
-                'FontWeight','bold', ...
-                'FontSize', 8, ...
-                'HorizontalAlignment','center', ...
-                'FontName','Arial', ...
-                'Color','k');
+        textXPos = Ankle_Xaxis(j) + 4;
+        if k==1
+            textYPos = Ankle_Yaxis(j) -10;
         else
-            text(Ankle_Xaxis(j)+4, Ankle_Yaxis(j) - 6, ...
-                ['Pos-', num2str(j)], ...
-                'FontWeight','bold', ...
-                'FontSize', 8, ...
-                'HorizontalAlignment','center', ...
-                'FontName','Arial', ...
-                'Color','k');
+            textYPos = Ankle_Yaxis(j) -12;
         end
+        if j == 1
+            textXPos = Ankle_Xaxis(j) + 4;
+            textYPos = Ankle_Yaxis(j) +12;    
+        elseif j == 2
+            if k==1
+                textYPos = Ankle_Yaxis(j) -16;
+            end
+        elseif j == 3
+            textXPos = Ankle_Xaxis(j) +23;
+            textYPos = Ankle_Yaxis(j) +8;
+        elseif j == 4
+            textXPos = Ankle_Xaxis(j) +9;
+            textYPos = Ankle_Yaxis(j) -13;
+        elseif j == 7
+            if k==1
+                textXPos = Ankle_Xaxis(j) +28;
+            else
+                textXPos = Ankle_Xaxis(j) +25;
+            end
+            textYPos = Ankle_Yaxis(j) -1;
+        elseif j == 8
+            if k==1
+                textXPos = Ankle_Xaxis(j) +30;
+            else
+                textXPos = Ankle_Xaxis(j) +25;
+            end
+            textYPos = Ankle_Yaxis(j) -1;
+        elseif j == 9
+            textXPos = Ankle_Xaxis(j) -25;
+            textYPos = Ankle_Yaxis(j) +0;
+        elseif j == 13
+            textXPos = Ankle_Xaxis(j) +20;
+            textYPos = Ankle_Yaxis(j) +10;
+        elseif j == 14
+            textXPos = Ankle_Xaxis(j) +0;
+            textYPos = Ankle_Yaxis(j) +10;
+        end
+        text(textXPos, textYPos, ...
+            ['Pos-', num2str(j)], ...
+            'FontWeight','bold', ...
+            'FontSize', 8, ...
+            'HorizontalAlignment','center', ...
+            'FontName','Arial', ...
+            'Color','k');
     end
 
     %setting label

@@ -1,5 +1,5 @@
 % For Figure S3
-% Created on Mar 20 2026
+% Created on Mar 20 2026 
 % @author:Yuta Soga
 
 %% Requirements
@@ -8,33 +8,31 @@
 
 %% Data loading
 filePath = 'data/';
-load([filePath,'data_Fig3S_hip_and_knee_joint_catA.mat']);
-load([filePath,'data_Fig3S_mean_firing_rate_representative_endpoint_neuron_catA.mat']);
+load([filePath,'data_FigS3_hip_and_ankle_xy_coordination_catB.mat']);
+load([filePath,'data_FigS3_mean_firing_rate_catB.mat']);
 
 %% Variables in this file
-% Hip_joint_angle_16_recording_positions_catA
-%   Size: [16 × 1]
-%   - Description: Hip joint angle at each of the 16 recording positions in Cat A
-%     Each element corresponds to the hip joint angle at a specific recording position
+% Ankle_xy_coordination_for_16_recording_positions
+%   Size: [16 × 2]
+%   - Column 1: X coordinate for each recording position (row 1: Pos-1, row2:Pos-2....)
+%   - Column 2: Y coordinate for each recording position (row 1: Pos-1, row2:Pos-2....)
+%   - Description: Ankle joint XY coordination for each recording position
+%   in Cat B
 
-% Knee_joint_angle_16_recording_positions_catA
-%   Size: [16 × 1]
-%   - Description: Knee joint angle at each of the 16 recording positions in Cat A
-%     Each element corresponds to the knee joint angle at a specific recording position
+% Hip_xy_coordination_average_across_16_recording_positions
+%   Size: [1 × 2]
+%   - Column 1: X coordinate
+%   - Column 2: Y coordinate
+%   - Description: Hip joint XY coordination averaged across 16 recording
+%     positions in Cat B
 
-% responsible_neuron_specific_endpoint_catA
-%   Size: [7 × 1]
-%   - Description: Neuron IDs in Cat A to be plotted in Figure S3
+% Mean_firing_rate_136_neurons_in_catB_16_recording_position
+%   Size: [136 × 16]
+%   - Rows: Neurons (Neuron 1 to Neuron 136)
+%   - Columns: Recording positions (Pos-1 to Pos-16)
+%   - Description: Mean firing rate of 136 neurons at each of the 16 recording positions
+%   in Cat B
 
-% specific_endpoint_representative_neuron_catA
-%   Size: [7 × 1]
-%   - Description: Representative neurons in Cat A that respond to specific
-%   endpoints, to be plotted in Figure S3
-
-% mean_firing_rate_specific_endpoint_catA
-%   Size: [7 × 16]
-%   - Description: Mean firing rates of representative neurons in Cat A across 16 recording positions
-%     Each row corresponds to a neuron, and each column corresponds to a recording position
 
 %% make folder for save
 currentFolder = pwd;  
@@ -43,162 +41,145 @@ if ~exist(figureFolder, 'dir')
     mkdir(figureFolder);
 end
 
-%% Preprocessing
-% Set X label hip joint angle, Y label knee joint angle
-X = Hip_joint_angle_16_recording_positions_catA;
-Y = Knee_joint_angle_16_recording_positions_catA;
+%% Color map setting
+nColors = 256;
+baseMap = viridis(nColors);
+dataMax   = 110;      % Maximum data value (Hz)
+threshold = 50;       % Threshold value for color mapping (Hz)
+t = threshold / dataMax;
+v = linspace(0,1,nColors);
+customRange = zeros(size(v));
+% --- Allocate 85% of the colormap to 0–50 Hz ---
+customRange(v <= t) = ...
+    (v(v<=t)/t) * 0.85;
+% --- For 50–110 Hz, assign the remaining 15% nonlinearly for a smooth transition ---
+gamma_high = 1.5;  % Gamma > 1 avoids end-point compression
+vh = (v(v>t)-t) / (1-t);
+customRange(v > t) = ...
+    0.85 + (vh.^gamma_high) * 0.15;
+% Interpolate the base colormap according to the custom range
+newCmap = interp1(linspace(0,1,nColors), baseMap, customRange);
 
-%% Plot single endpoint responsive neurons
-figure('Units','centimeters','Position',[5 5 17 23]);
-tiledlayout(4,2,'TileSpacing','compact','Padding','compact');
 
-% Plot four representative neurons for each panel
-for k = 1:length(responsible_neuron_specific_endpoint_3S_catA)
-    neuron_idx = responsible_neuron_specific_endpoint_3S_catA(k);
-    nexttile
-    hold on;
-    axis equal;
+%% Calculate the gradient of neural activity with respect to changes in the X direction
+% Initial setting
+nNeuron  = length(Mean_firing_rate_136_neurons_in_catB_16_recording_position);
+nPosture = 16;
 
-    % Extract mean firing rate for plotting
-    firing_rate_mean = mean_firing_rate_specific_endpoint_3S_catA(k, :);
-    
-    % Plot mean firing rate for 16 recording position
-    scatter(X, Y, 20, firing_rate_mean, ...
-        'filled', 'MarkerEdgeColor', 'k');   
-  
-    % Setting color scale for mean firing rate
-    max_val = max(firing_rate_mean, [], 'all');
-    if max_val > 100
-        ylim_fig = [0 120];
-    elseif max_val > 80
-        ylim_fig = [0 100];
-    elseif max_val > 60
-        ylim_fig = [0 80];
-    elseif max_val > 40
-        ylim_fig = [0 60];
-    elseif max_val > 20
-        ylim_fig = [0 40];
-    elseif max_val > 10
-        ylim_fig = [0 20];
-    elseif max_val > 5
-        ylim_fig = [0 10];
-    elseif max_val > 1
-        ylim_fig = [0 5];
-    else
-        ylim_fig = [0 1];
-    end
+% Sort recording positions by ankle X displacement (relative to hip), and align firing rates to this order.
+Ankle_Xaxis = Ankle_xy_coordination_for_16_recording_positions(:,1) - Hip_xy_coordination_average_across_16_recording_positions(1,1);
+[~, sortIdx_X] = sort(Ankle_Xaxis,'ascend');
+FR_X = Mean_firing_rate_136_neurons_in_catB_16_recording_position(:, sortIdx_X);
 
-    % Setting color scale tick
-    if max_val >= 100
-        tick_step = 20;
-    elseif max_val >= 20
-        tick_step = 10;
-    elseif max_val >= 10
-        tick_step = 2;
-    elseif max_val >= 5
-        tick_step = 1;
-    elseif max_val >= 1
-        tick_step = 0.2;
-    else
-        tick_step = 0.1;
-    end
-
-    % setting color bar
-    colormap(viridis);
-    range_max = ylim_fig(2);
-    caxis(ylim_fig);
-    cb = colorbar;
-    cb.Ticks = 0:tick_step:range_max;
-    set(cb, ...
-        'FontName','Arial', ...
-        'FontWeight','bold', ...
-        'FontSize',8 ...
-        ,'Color','k')
-
-    % Setting title
-    title(sprintf('Cat A Neuron #%d', neuron_idx), ...
-        'FontWeight','bold', ...
-        'FontName','Arial', ...
-        'FontSize',8, ...
-        'Color','k');
-    
-    % Label the single endpoint responded position
-    target_pos = specific_endpoint_representative_neuron_3S_catA(k);
-    for j = 1:length(X)
-        if j == target_pos
-            txtColor = [1.0 0.6 0.0];   % Single endpoint responded position
-        else
-            txtColor = 'k';
-        end
-
-        % Label other recording positions
-        if j == 3
-            text(X(j), Y(j)+5, ...
-            ['P-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-        elseif j == 9
-        text(X(j), Y(j)+5, ...
-            ['P-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-        elseif j == 15
-        text(X(j)+2, Y(j)-4.5, ...
-            ['P-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-        else
-        text(X(j), Y(j)-4.5, ...
-            ['P-', num2str(j)], ...
-            'FontWeight','bold', ...
-            'FontSize', 8, ...
-            'HorizontalAlignment','center', ...
-            'FontName','Arial', ...
-            'Color', txtColor);
-        end
-    end
-
-    % Setting label
-    if k == 7 
-        xlabel('Hip joint angle [degree]', ...
-        'FontWeight','bold', ...
-        'FontName','Arial', ...
-        'FontSize',8, ...
-        'Color','k'); 
-        ylabel('Knee joint angle [degree]', ...
-        'FontWeight','bold', ...
-        'FontName','Arial', ...
-        'FontSize',8, ...
-        'Color','k');  
-    else
-        xlabel('')
-        ylabel('')
-    end 
-    xlim([20 120])
-    ylim([40 140])
-    xticks(20:20:120);
-    yticks(40:20:140);
-    set(gca, ...
-    'FontName','Arial', ...
-    'FontWeight','bold', ...
-    'FontSize',8, ...
-    'LineWidth',1.5, ...
-    'TickDir','out', ...
-    'XColor','k', ...
-    'YColor','k')
+% Divide the 16 recording positions into four groups and compute the gradient
+group_mean = zeros(nNeuron,4);
+for g = 1:4
+    idx = (g-1)*4 + (1:4);
+    group_mean(:,g) = mean(FR_X(:,idx), 2, 'omitnan');
 end
+x = (1:4)';
+slope = zeros(nNeuron,1);
+for i = 1:nNeuron
+    p = polyfit(x, group_mean(i,:)', 1);
+    slope(i) = p(1);
+end
+[~, idx_sort] = sort(slope,'descend');
+FR_X_sorted = FR_X(idx_sort,:);
+
+%% Calculate the gradient of neural activity with respect to changes in the Y direction.
+% Sort recording positions by ankle Y displacement (relative to hip), and align firing rates to this order.
+Ankle_Yaxis = Ankle_xy_coordination_for_16_recording_positions(:,2) - Hip_xy_coordination_average_across_16_recording_positions(1,2);
+[~, sortIdx_Y] = sort(Ankle_Yaxis,'ascend');
+
+FR_Y = Mean_firing_rate_136_neurons_in_catB_16_recording_position(:, sortIdx_Y);
+
+% Divide the 16 recording positions into four groups and compute the gradient
+group_mean = zeros(nNeuron,4);
+for g = 1:4
+    idx = (g-1)*4 + (1:4);
+    group_mean(:,g) = mean(FR_Y(:,idx), 2, 'omitnan');
+end
+slope = zeros(nNeuron,1);
+for i = 1:nNeuron
+    p = polyfit(x, group_mean(i,:)', 1);
+    slope(i) = p(1);
+end
+[~, idx_sort] = sort(slope,'descend');
+FR_Y_sorted = FR_Y(idx_sort,:);
+
+%% Plot the modulation of 136 neurons along X and Y axis
+figure('Units','centimeters','Position',[5 5 17 12]);
+set(gcf,'DefaultAxesFontName','Arial');
+set(gcf,'DefaultTextFontName','Arial');
+tiledlayout(1,2,'TileSpacing','compact','Padding','compact');
+
+% Plot the modulation of 136 neurons along the X direction
+nexttile;
+axis tight;
+
+% Plot mean firing rate
+imagesc(FR_X_sorted);
+
+% Set color map
+cb1 = colormap(newCmap);
+caxis([0 dataMax])
+cb1 = colorbar;
+cb1.FontSize = 8;
+cb1.FontWeight = 'bold';
+cb1.Color = 'k';   
+
+% Set label
+xlabel('Recording Position (Sorted by X axis)',...
+    'FontSize',10,'FontWeight','bold','Color','k');
+ylabel('Single neuron',...
+    'FontSize',10,'FontWeight','bold','Color','k');
+set(gca,...
+    'FontSize',8,...
+    'XTick',1:nPosture,...
+    'XTickLabel',arrayfun(@(x)sprintf('%d',x), sortIdx_X, 'UniformOutput', false),...
+    'XTickLabelRotation',0,...
+    'YTick',[],...
+    'FontWeight','bold',...
+    'LineWidth',1.5,...
+    'YDir','normal',...
+    'TickDir','out',...
+    'Box','off',...
+    'XColor','k',...
+    'YColor','k');
+
+
+% Plot the modulation of 136 neurons along the Y direction
+nexttile;
+axis tight;
+
+% Plot mean firing rate
+imagesc(FR_Y_sorted);
+
+% Set color map
+cb2 = colormap(newCmap);
+caxis([0 dataMax])
+cb2 = colorbar;
+cb2.FontSize = 8;
+cb2.FontWeight = 'bold';
+cb2.Color = 'k';   
+
+% Set label
+xlabel('Recording Position (Sorted by Y-axis)',...
+    'FontSize',10,'FontWeight','bold','Color','k');
+set(gca,...
+    'FontSize',8,...
+    'XTick',1:nPosture,...
+    'XTickLabel',arrayfun(@(x)sprintf('%d',x), sortIdx_Y, 'UniformOutput', false),...
+    'XTickLabelRotation',0,...
+    'YTick',[],...
+    'FontWeight','bold',...
+    'LineWidth',1.5,...
+    'YDir','normal',...
+    'TickDir','out',...
+    'Box','off',...
+    'XColor','k',...
+    'YColor','k');
 
 % print and save figure
-set(gcf, 'Renderer', 'painters'); 
-print(gcf, fullfile(figureFolder, ...
-    'FigureS3.emf'), ...
-    '-dmeta', '-r600');
+save_name = fullfile(figureFolder,'FigureS3.emf');
+print(gcf, save_name, '-dmeta', '-r600');

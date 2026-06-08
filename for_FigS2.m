@@ -4,12 +4,13 @@
 
 %% Requirements
 % This code uses a perceptually uniform colormap ("viridis") from Matplotlib.
-% The colormap is not included in standard MATLAB and requires an external function (e.g., viridis.m).
+% The colormap is not included in standard MATLAB and requires an external
+% function (e.g., viridis.m).
 
 %% Data loading
 filePath = 'data/';
-load([filePath,'data_FigS2_hip_and_ankle_xy_coordination_catB.mat']);
-load([filePath,'data_FigS2_mean_firing_rate_catB.mat']);
+load([filePath,'data_FigS2_hip_and_ankle_xy_coordination.mat']);
+load([filePath,'data_FigS2_mean_firing_rate.mat']);
 
 %% Variables in this file
 % Ankle_xy_coordination_for_16_recording_positions
@@ -17,22 +18,21 @@ load([filePath,'data_FigS2_mean_firing_rate_catB.mat']);
 %   - Column 1: X coordinate for each recording position (row 1: Pos-1, row2:Pos-2....)
 %   - Column 2: Y coordinate for each recording position (row 1: Pos-1, row2:Pos-2....)
 %   - Description: Ankle joint XY coordination for each recording position
-%   in Cat B
+%   in Cat A
 
 % Hip_xy_coordination_average_across_16_recording_positions
 %   Size: [1 × 2]
 %   - Column 1: X coordinate
 %   - Column 2: Y coordinate
 %   - Description: Hip joint XY coordination averaged across 16 recording
-%     positions in Cat B
+%     positions in Cat A
 
-% Mean_firing_rate_136_neurons_in_catB_16_recording_position
-%   Size: [136 × 16]
-%   - Rows: Neurons (Neuron 1 to Neuron 136)
+% Mean_firing_rate_72_neurons_in_catA_16_recording_position
+%   Size: [72 × 16]
+%   - Rows: Neurons (Neuron 1 to Neuron 72)
 %   - Columns: Recording positions (Pos-1 to Pos-16)
-%   - Description: Mean firing rate of 136 neurons at each of the 16 recording positions
-%   in Cat B
-
+%   - Description: Mean firing rate of 72 neurons at each of the 16 recording positions
+%   in Cat A
 
 %% make folder for save
 currentFolder = pwd;  
@@ -40,6 +40,7 @@ figureFolder = fullfile(currentFolder, 'Figure');
 if ~exist(figureFolder, 'dir')
     mkdir(figureFolder);
 end
+
 
 %% Color map setting
 nColors = 256;
@@ -60,16 +61,15 @@ customRange(v > t) = ...
 % Interpolate the base colormap according to the custom range
 newCmap = interp1(linspace(0,1,nColors), baseMap, customRange);
 
-
 %% Calculate the gradient of neural activity with respect to changes in the X direction
 % Initial setting
-nNeuron  = length(Mean_firing_rate_136_neurons_in_catB_16_recording_position);
+nNeuron  = length(Mean_firing_rate_72_neurons_in_catA_16_recording_position);
 nPosture = 16;
 
 % Sort recording positions by ankle X displacement (relative to hip), and align firing rates to this order.
 Ankle_Xaxis = Ankle_xy_coordination_for_16_recording_positions(:,1) - Hip_xy_coordination_average_across_16_recording_positions(1,1);
 [~, sortIdx_X] = sort(Ankle_Xaxis,'ascend');
-FR_X = Mean_firing_rate_136_neurons_in_catB_16_recording_position(:, sortIdx_X);
+FR_X = Mean_firing_rate_72_neurons_in_catA_16_recording_position(:, sortIdx_X);
 
 % Divide the 16 recording positions into four groups and compute the gradient
 group_mean = zeros(nNeuron,4);
@@ -91,7 +91,7 @@ FR_X_sorted = FR_X(idx_sort,:);
 Ankle_Yaxis = Ankle_xy_coordination_for_16_recording_positions(:,2) - Hip_xy_coordination_average_across_16_recording_positions(1,2);
 [~, sortIdx_Y] = sort(Ankle_Yaxis,'ascend');
 
-FR_Y = Mean_firing_rate_136_neurons_in_catB_16_recording_position(:, sortIdx_Y);
+FR_Y = Mean_firing_rate_72_neurons_in_catA_16_recording_position(:, sortIdx_Y);
 
 % Divide the 16 recording positions into four groups and compute the gradient
 group_mean = zeros(nNeuron,4);
@@ -107,13 +107,13 @@ end
 [~, idx_sort] = sort(slope,'descend');
 FR_Y_sorted = FR_Y(idx_sort,:);
 
-%% Plot the modulation of 136 neurons along X and Y axis
-figure('Units','centimeters','Position',[5 5 17 12]);
+%% Plot the modulation of 72 neurons along X and Y axis
+figure('Units','centimeters','Position',[5 5 17 9]);
 set(gcf,'DefaultAxesFontName','Arial');
 set(gcf,'DefaultTextFontName','Arial');
 tiledlayout(1,2,'TileSpacing','compact','Padding','compact');
 
-% Plot the modulation of 136 neurons along the X direction
+% Plot the modulation of 72 neurons along the X direction
 nexttile;
 axis tight;
 
@@ -148,7 +148,7 @@ set(gca,...
     'YColor','k');
 
 
-% Plot the modulation of 136 neurons along the Y direction
+% Plot the modulation of 72 neurons along the Y direction
 nexttile;
 axis tight;
 
