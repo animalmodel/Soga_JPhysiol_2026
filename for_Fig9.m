@@ -8,10 +8,10 @@
 
 %% Data loading
 filePath = 'data/';
-load([filePath,'data_FigS5_hip_and_knee_joint_catA.mat']);
-load([filePath,'data_FigS5_PC1_PC2_PC3_score_catA.mat']);
-load([filePath,'data_FigS5_hip_and_knee_joint_catB.mat']);
-load([filePath,'data_FigS5_PC1_PC2_PC3_score_catB.mat']);
+load([filePath,'data_Fig9_hip_and_knee_joint_catA.mat']);
+load([filePath,'data_Fig9_PC1_PC2_PC3_score_catA.mat']);
+load([filePath,'data_Fig9_hip_and_knee_joint_catB.mat']);
+load([filePath,'data_Fig9_PC1_PC2_PC3_score_catB.mat']);
 
 %% Variables in this file
 % Joint angle
@@ -221,7 +221,7 @@ for i = 1:2
 end
 
 % Print and save figure
-export_path = fullfile(figureFolder, 'FigureS5A.emf');
+export_path = fullfile(figureFolder, 'Figure9A.emf');
 set(gcf, 'PaperUnits', 'centimeters', ...
          'PaperPosition', [0 0 13 8]);
 set(gcf, 'Renderer', 'painters'); 
@@ -381,7 +381,7 @@ for i = 1:2
 end
 
 % Print and save figure
-export_path = fullfile(figureFolder, 'FigureS5B.emf');
+export_path = fullfile(figureFolder, 'Figure9B.emf');
 set(gcf, 'PaperUnits', 'centimeters', 'PaperPosition', [0 0 13 8]);
 set(gcf, 'Renderer', 'painters');  
 print(gcf, export_path, '-dmeta'); 

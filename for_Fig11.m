@@ -4,8 +4,8 @@
 
 %% Data loading
 filePath = 'data/';
-load([filePath,'data_figS6_lasso_pred_catA.mat']);
-load([filePath,'data_figS6_lasso_pred_catB.mat']);
+load([filePath,'data_fig11_lasso_pred_catA.mat']);
+load([filePath,'data_fig11_lasso_pred_catB.mat']);
 
 %% Variables in this file
 % orientation_length_catA
@@ -368,5 +368,5 @@ fig.PaperSize = [target_width target_height];
 fig.PaperPosition = [0 0 target_width target_height];
 
 % Print and save figure
-emfFileName = fullfile(figureFolder, 'FigureS6.emf');
+emfFileName = fullfile(figureFolder, 'Figure11.emf');
 print(fig, emfFileName, '-dmeta');
